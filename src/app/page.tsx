@@ -22,7 +22,7 @@ export default function HomePage() {
           <Button 
             variant="outline" 
             className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg 
-                       border-green-500 text-green-700 hover:bg-green-50
+                       border-green-500 text-green-700 hover:bg-green-500
                        dark:border-green-400 dark:text-green-400 dark:hover:bg-green-950"
           >
             {/* El icono hereda el color del texto */}
@@ -32,20 +32,17 @@ export default function HomePage() {
         </Link>
 
         {/* 2. Move img TY RFID (Botón deshabilitado - Azul) */}
+          <Link href="/move-ty-rfid" passHref>
         <Button 
           variant="outline" 
-          disabled 
-          className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg opacity-50 cursor-not-allowed
-                     border-blue-500 text-blue-700
-                     dark:border-blue-400 dark:text-blue-400"
+          className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg
+                    border-blue-500 text-blue-700 hover:bg-blue-500
+                    dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-950"
         >
           <Image className="h-8 w-8 mb-2" />
           <span>Move img TY RFID</span>
-          <span className="text-sm font-normal text-muted-foreground mt-1">
-            (Muy Pronto)
-          </span>
         </Button>
-
+        </Link>
         {/* 3. Move img 47TH (Botón deshabilitado - Índigo) */}
         <Button 
           variant="outline" 

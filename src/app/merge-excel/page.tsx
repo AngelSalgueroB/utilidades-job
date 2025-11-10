@@ -2,7 +2,8 @@
 
 import { useState, type ChangeEvent } from 'react';
 import * as XLSX from 'xlsx';
-import { Upload, Download, FileText, Loader2, AlertTriangle, Trash2 } from 'lucide-react';
+// Se añade 'ArrowLeft' para el ícono de regreso
+import { Upload, Download, FileText, Loader2, AlertTriangle, Trash2, ArrowLeft } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -123,8 +124,21 @@ export default function MergeExcelPage() {
   
   return (
       <main className="flex-grow container mx-auto px-4 py-8 md:py-12">
+        
+        {/* --- BOTÓN DE REGRESAR AGREGADO --- */}
+        <div className="mb-6">
+          <Button asChild variant="ghost" className="text-green-700 dark:text-green-400 hover:bg-green-500 dark:hover:bg-green-950 font-medium">
+            {/* Se usa una etiqueta <a> simple para navegar a la raíz */}
+            <a href="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Regresar al Menú Principal
+            </a>
+          </Button>
+        </div>
+        {/* --- FIN DEL BOTÓN DE REGRESAR --- */}
+
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">TB RFID</h1>
+          <h1 className="text-4xl md:text-5xl font-headline font-bold text-green-600">TB RFID</h1>
           <p className="text-muted-foreground mt-2">Merge your Excel files from TB database into a single file with ease.</p>
 
         </div>
@@ -148,42 +162,62 @@ export default function MergeExcelPage() {
               <CardDescription>Select the Excel files (.xlsx, .xls, .csv) you want to combine. The first file's headers will be used as the template.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <label htmlFor="file-upload" className="w-full cursor-pointer bg-secondary/50 hover:bg-secondary border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center text-center transition-colors">
-                <Upload className="h-10 w-10 text-muted-foreground mb-4" />
-                <span className="font-semibold text-primary">Click to upload files</span>
-                <span className="text-sm text-muted-foreground">or drag and drop</span>
-                <Input id="file-upload" type="file" multiple accept=".xlsx, .xls, .csv" className="hidden" onChange={handleFileChange} />
-              </label>
+                  {/* INICIA OPCIÓN 1 */}
+                  <div className="flex flex-col items-center gap-4">
+                    <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        <Upload className="mr-2 h-5 w-5" />
+                        Seleccionar Archivos
+                      </label>
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      {files.length > 0
+                        ? `${files.length} archivo(s) seleccionado(s)`
+                        : "Sube uno o más archivos Excel"}
+                    </p>
 
-              {files.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-sm">Selected Files:</h3>
-                  <ul className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                    {files.map((file, index) => (
-                      <li key={index} className="flex items-center justify-between bg-secondary/30 p-2 rounded-md text-sm">
-                        <div className="flex items-center gap-2 truncate">
-                          <FileText className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{file.name}</span>
-                        </div>
-                        <Button variant="destructive" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeFile(file)}>
-                          <Trash2 className="h-5 w-5" />
-                          <span className="sr-only">Remove file</span>
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                    {/* Input oculto que hace la magia */}
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      multiple
+                      accept=".xlsx, .xls, .csv"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                  {/* TERMINA OPCIÓN 1 */}
+
+                  {/* Muestra la lista de archivos seleccionados */}
+                  {files.length > 0 && (
+                    <div className="space-y-2">
+                       <h3 className="font-semibold text-sm">Selected Files:</h3>
+                       <ul className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                         {files.map((file, index) => (
+                           <li key={index} className="flex items-center justify-between bg-secondary/30 p-2 rounded-md text-sm">
+                             <div className="flex items-center gap-2 truncate">
+                               <FileText className="h-4 w-4 shrink-0" />
+                               <span className="truncate">{file.name}</span>
+                             </div>
+                             <Button variant="destructive" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeFile(file)}>
+                               <Trash2 className="h-5 w-5" />
+                               <span className="sr-only">Remove file</span>
+                             </Button>
+                           </li>
+                         ))}
+                       </ul>
+                    </div>
+                  )}
             </CardContent>
             <CardFooter>
-               <Button onClick={processFiles} disabled={files.length === 0 || isLoading} className="w-full">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : `Merge & Download ${files.length} File${files.length !== 1 ? 's' : ''}`}
-              </Button>
+                <Button onClick={processFiles} disabled={files.length === 0 || isLoading} className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : `Merge & Download ${files.length} File${files.length !== 1 ? 's' : ''}`}
+                </Button>
             </CardFooter>
           </Card>
         </div>
