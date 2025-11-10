@@ -273,7 +273,7 @@ export default function MoveImgTyRfidPage() {
         </AlertDialog>
 
         {/* --- BOTÓN DE REGRESAR --- */}
-        <div className="mb-6">
+        <div className="mb-0.1">
           <Button asChild variant="ghost" className="text-blue-700 dark:text-blue-400 hover:bg-blue-500 dark:hover:bg-blue-950 font-medium">
             <a href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -282,7 +282,7 @@ export default function MoveImgTyRfidPage() {
           </Button>
         </div>
 
-        <div className="text-center mb-12">
+        <div className="text-center mb-2">
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-blue-700 dark:text-blue-400">
             Move img TY RFID
           </h1>
