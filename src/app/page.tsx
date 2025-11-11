@@ -44,35 +44,29 @@ export default function HomePage() {
         </Button>
         </Link>
         {/* 3. Move img 47TH (Botón deshabilitado - Índigo) */}
+        <Link href="/eraser-47" passHref>
         <Button 
-          variant="outline" 
-          disabled 
-          className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg opacity-50 cursor-not-allowed
-                     border-indigo-500 text-indigo-700
-                     dark:border-indigo-400 dark:text-indigo-400"
+          variant="outline"           
+          className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg
+                     border-indigo-500 text-indigo-700 hover:bg-indigo-500
+                     dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-950"
         >
           <Image className="h-8 w-8 mb-2" />
-          <span>Move img 47TH</span>
-          <span className="text-sm font-normal text-muted-foreground mt-1">
-            (Muy Pronto)
-          </span>
+          <span>Erase img 47TH</span>
         </Button>
-
+        </Link>
         {/* 4. Creating folders (Botón deshabilitado - Ámbar) */}
-        <Button 
-          variant="outline" 
-          disabled 
-          className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg opacity-50 cursor-not-allowed
-                     border-amber-500 text-amber-700
-                     dark:border-amber-400 dark:text-amber-400"
+        <Link href="/creating-folders" passHref>
+      <Button 
+          variant="outline"
+          className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg
+                    border-yellow-500 text-yellow-700 hover:bg-yellow-500
+                    dark:border-yellow-400 dark:text-yellow-400 dark:hover:bg-yellow-950"
         >
           <FolderPlus className="h-8 w-8 mb-2" />
           <span>Creating folders</span>
-          <span className="text-sm font-normal text-muted-foreground mt-1">
-            (Muy Pronto)
-          </span>
-        </Button>
-
+          </Button>
+        </Link>
       </div>
     </main>
   );
