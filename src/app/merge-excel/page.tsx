@@ -1,226 +1,236 @@
 "use client";
 
-import { useState, type ChangeEvent } from 'react';
+import { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-// Se añade 'ArrowLeft' para el ícono de regreso
-import { Upload, Download, FileText, Loader2, AlertTriangle, Trash2, ArrowLeft } from 'lucide-react'; 
+import { Loader2, AlertTriangle, ArrowLeft, FolderSearch, List, CheckCircle2 } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
-// Define a type for the merged data for better type safety
 type ExcelRow = { [key: string]: any };
 
-export default function MergeExcelPage() {
-  const [files, setFiles] = useState<File[]>([]);
-  const [mergedData, setMergedData] = useState<ExcelRow[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+interface FileWithPath extends File {
+  webkitRelativePath: string;
+}
+
+export default function JavaLogicReplica() {
+  const [allFiles, setAllFiles] = useState<FileWithPath[]>([]);
+  const [folderListText, setFolderListText] = useState(""); 
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const newFiles = Array.from(event.target.files);
+  // 1. CARGA DE LA CARPETA RAÍZ
+  const handleFolderUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const files = Array.from(event.target.files) as FileWithPath[];
+      
+      const validFiles = files.filter(f => 
+        f.name.match(/\.(xlsx|xls|csv)$/i) && !f.name.startsWith('~$')
+      );
 
-      setFiles(prevFiles => {
-        const existingFileKeys = new Set(
-          prevFiles.map(f => `${f.name}-${f.size}-${f.lastModified}`)
-        );
-        const uniqueNewFiles = newFiles.filter(f => {
-          const fileKey = `${f.name}-${f.size}-${f.lastModified}`;
-          return !existingFileKeys.has(fileKey);
-        });
-        return [...prevFiles, ...uniqueNewFiles];
-      });
+      if (validFiles.length === 0) {
+        setError("No se encontraron archivos Excel en la carpeta seleccionada.");
+        return;
+      }
 
-      setMergedData([]);
-      setHeaders([]);
+      setAllFiles(validFiles);
       setError(null);
     }
   };
-  
-  const removeFile = (fileToRemove: File) => {
-    setFiles(files.filter(file => file !== fileToRemove));
-  };
 
-  const downloadFile = (data: ExcelRow[], dataHeaders: string[]) => {
-    if (data.length === 0) {
-      setError("No data available to download.");
+  // 2. FILTRADO Y ORDENAMIENTO (CORREGIDO)
+  const filesToProcess = useMemo(() => {
+    if (!folderListText.trim()) return [];
+
+    // Obtenemos la lista ordenada tal cual la escribió el usuario
+    const targetFolders = folderListText
+      .split(/[\n,]+/) 
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    if (targetFolders.length === 0) return [];
+
+    const orderedFiles: FileWithPath[] = [];
+
+    // LÓGICA NUEVA:
+    // Iteramos sobre LA LISTA DEL USUARIO (no sobre los archivos del navegador)
+    // Esto fuerza a que el orden de procesamiento sea idéntico al del texto.
+    targetFolders.forEach(folderName => {
+        // Buscamos en 'allFiles' los que coincidan con este nombre de carpeta
+        const matches = allFiles.filter(file => 
+            file.webkitRelativePath.includes(folderName)
+        );
+        
+        // Si hay varios archivos en esa carpeta (ej. Part1, Part2), 
+        // los agregamos. Si solo hay uno, se agrega ese.
+        // Nota: spread (...) añade los elementos al array principal en este orden exacto.
+        orderedFiles.push(...matches);
+    });
+
+    // Eliminamos duplicados por seguridad (si el usuario repitió el código en el texto, 
+    // decidimos si queremos repetirlo o no. Usando Set eliminamos repeticiones exactas de archivo).
+    return Array.from(new Set(orderedFiles));
+
+  }, [allFiles, folderListText]);
+
+  // 3. FUSIÓN Y DESCARGA
+  const processAndDownload = async () => {
+    if (filesToProcess.length === 0) {
+      setError("No hay archivos que coincidan con la lista de carpetas proporcionada.");
       return;
     }
-    try {
-      const worksheet = XLSX.utils.json_to_sheet(data, { header: dataHeaders });
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'MergedData');
-      XLSX.writeFile(workbook, `Merge_files.xlsx`);
-    } catch (e) {
-      console.error(e);
-      setError("An error occurred while creating the download file.");
-    }
-  };
-  
-  const processFiles = async () => {
-    if (files.length === 0) {
-      setError("Please upload at least one Excel file.");
-      return;
-    }
-    setIsLoading(true);
+
+    setIsProcessing(true);
     setError(null);
-    
+
     let allData: ExcelRow[] = [];
-    let firstFileHeaders: string[] = [];
+    let headers: string[] = [];
 
     try {
-      const firstFile = files[0];
-      const firstFileData = await firstFile.arrayBuffer();
-      const firstWorkbook = XLSX.read(firstFileData);
-      const firstSheetName = firstWorkbook.SheetNames[0];
-      const firstWorksheet = firstWorkbook.Sheets[firstSheetName];
-      const firstJsonData = XLSX.utils.sheet_to_json<ExcelRow>(firstWorksheet, { header: 1, defval: "" });
+      // Tomamos el primero de la lista YA ORDENADA para las cabeceras
+      const firstFile = filesToProcess[0];
+      const buffer = await firstFile.arrayBuffer();
+      const wb = XLSX.read(buffer);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const jsonDataFirst = XLSX.utils.sheet_to_json<ExcelRow>(ws, { header: 1, defval: "" });
       
-      if (firstJsonData.length > 0) {
-        firstFileHeaders = (firstJsonData[0] as string[]).map(String);
-      } else {
-        throw new Error("The first Excel file is empty or does not contain headers.");
-      }
-      setHeaders(firstFileHeaders);
-
-      for (const file of files) {
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json<ExcelRow>(worksheet, { defval: "" });
-        
-        allData = allData.concat(jsonData);
-      }
-      
-      const normalizedData = allData.map(row => {
-        const newRow: ExcelRow = {};
-        for (const header of firstFileHeaders) {
-          newRow[header] = row[header] ?? "";
-        }
-        return newRow;
-      });
-
-      setMergedData(normalizedData);
-
-      if (normalizedData.length > 0) {
-        downloadFile(normalizedData, firstFileHeaders);
-      } else {
-        setError("No data was found to merge.");
+      if (jsonDataFirst.length > 0) {
+        headers = (jsonDataFirst[0] as string[]).map(String);
       }
 
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || "An error occurred while processing the files. Please ensure they are valid Excel files.");
-      setMergedData([]);
-      setHeaders([]);
+      // Procesamos en el orden estricto de filesToProcess
+      for (const file of filesToProcess) {
+        const fileData = await file.arrayBuffer();
+        const workbook = XLSX.read(fileData);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json<ExcelRow>(sheet, { defval: "" });
+
+        const normalizedRows = json.map(row => {
+             const newRow: ExcelRow = {};
+             headers.forEach(h => {
+                 newRow[h] = row[h] ?? "";
+             });
+             return newRow;
+        });
+
+        allData = allData.concat(normalizedRows);
+      }
+
+      const wsNew = XLSX.utils.json_to_sheet(allData, { header: headers });
+      const wbNew = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wbNew, wsNew, "Merged Data");
+      XLSX.writeFile(wbNew, `Combine_${new Date().getTime()}.xlsx`);
+
+    } catch (err: any) {
+      setError("Error al procesar: " + err.message);
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
     }
   };
-  
+
   return (
-      <main className="flex-grow container mx-auto px-4 py-8 md:py-12">
+    <main className="container mx-auto px-4 py-8 max-w-4xl">
         
-        {/* --- BOTÓN DE REGRESAR AGREGADO --- */}
-        <div className="mb-6">
-          <Button asChild variant="ghost" className="text-green-700 dark:text-green-400 hover:bg-green-500 dark:hover:bg-green-950 font-medium">
-            {/* Se usa una etiqueta <a> simple para navegar a la raíz */}
-            <a href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Regresar al Menú Principal
-            </a>
-          </Button>
-        </div>
-        {/* --- FIN DEL BOTÓN DE REGRESAR --- */}
+      <div className="flex items-center justify-between mb-8">
+        <Button variant="ghost" asChild className="text-green-700 hover:bg-green-100">
+            <a href="/"><ArrowLeft className="mr-2 h-4 w-4" /> Volver</a>
+        </Button>
+        <h1 className="text-2xl font-bold text-green-700">Excel Merger (Orden Estricto)</h1>
+      </div>
 
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-headline font-bold text-green-600">TB RFID</h1>
-          <p className="text-muted-foreground mt-2">Merge your Excel files from TB database into a single file with ease.</p>
-
-        </div>
-        <div className="max-w-7xl mx-auto mb-4 lg:max-w-2xl">
-          {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-        </div>
+      <div className="grid gap-6">
         
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 items-start max-w-7xl mx-auto">
-          <Card className="w-full shadow-lg lg:max-w-2xl lg:mx-auto">
+        {/* --- PASO 1: SELECCIONAR SOURCE DIR --- */}
+        <Card className="border-l-4 border-l-blue-500 shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-6 w-6"/>
-                1. Upload & Merge
-              </CardTitle>
-              <CardDescription>Select the Excel files (.xlsx, .xls, .csv) you want to combine. The first file's headers will be used as the template.</CardDescription>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                    <FolderSearch className="h-5 w-5 text-blue-500"/>
+                    Paso 1: Seleccionar "Source Directory"
+                </CardTitle>
+                <CardDescription>
+                    Selecciona la carpeta raíz donde están todos los archivos.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center gap-4">
+                    <Button asChild variant="secondary" className="cursor-pointer">
+                        <label>
+                            Seleccionar Carpeta Raíz
+                            <Input 
+                                type="file" 
+                                className="hidden" 
+                                {...({ webkitdirectory: "", directory: "" } as any)} 
+                                onChange={handleFolderUpload}
+                            />
+                        </label>
+                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                        {allFiles.length > 0 ? (
+                            <span className="text-green-600 flex items-center font-bold">
+                                <CheckCircle2 className="mr-1 h-4 w-4"/> 
+                                {allFiles.length} archivos Excel listos en memoria.
+                            </span>
+                        ) : "Ninguna carpeta seleccionada"}
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+
+        {/* --- PASO 2: LISTA DE CARPETAS ESPECÍFICAS --- */}
+        <Card className={`border-l-4 shadow-sm transition-opacity ${allFiles.length === 0 ? 'opacity-50 pointer-events-none' : 'border-l-green-500'}`}>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                    <List className="h-5 w-5 text-green-500"/>
+                    Paso 2: Pegar Lista de Carpetas (Orden Estricto)
+                </CardTitle>
+                <CardDescription>
+                    Pega los nombres de las carpetas. El Excel final respetará este orden exacto (de arriba a abajo).
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                  {/* INICIA OPCIÓN 1 */}
-                  <div className="flex flex-col items-center gap-4">
-                    <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <Upload className="mr-2 h-5 w-5" />
-                        Seleccionar Archivos
-                      </label>
-                    </Button>
-                    <p className="text-sm text-muted-foreground">
-                      {files.length > 0
-                        ? `${files.length} archivo(s) seleccionado(s)`
-                        : "Sube uno o más archivos Excel"}
-                    </p>
+                <Textarea 
+                    placeholder={`7605D008422
+7605D008423
+7605D008424`} 
+                    className="font-mono text-sm h-40"
+                    value={folderListText}
+                    onChange={(e) => setFolderListText(e.target.value)}
+                />
+                
+                <div className="bg-slate-100 dark:bg-slate-900 p-3 rounded-md flex justify-between items-center">
+                    <span className="text-sm font-medium">Archivos ordenados listos:</span>
+                    <Badge variant={filesToProcess.length > 0 ? "default" : "destructive"} className="text-md px-3 py-1">
+                        {filesToProcess.length}
+                    </Badge>
+                </div>
 
-                    {/* Input oculto que hace la magia */}
-                    <Input
-                      id="file-upload"
-                      type="file"
-                      multiple
-                      accept=".xlsx, .xls, .csv"
-                      className="hidden"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                  {/* TERMINA OPCIÓN 1 */}
-
-                  {/* Muestra la lista de archivos seleccionados */}
-                  {files.length > 0 && (
-                    <div className="space-y-2">
-                       <h3 className="font-semibold text-sm">Selected Files:</h3>
-                       <ul className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                         {files.map((file, index) => (
-                           <li key={index} className="flex items-center justify-between bg-secondary/30 p-2 rounded-md text-sm">
-                             <div className="flex items-center gap-2 truncate">
-                               <FileText className="h-4 w-4 shrink-0" />
-                               <span className="truncate">{file.name}</span>
-                             </div>
-                             <Button variant="destructive" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeFile(file)}>
-                               <Trash2 className="h-5 w-5" />
-                               <span className="sr-only">Remove file</span>
-                             </Button>
-                           </li>
-                         ))}
-                       </ul>
-                    </div>
-                  )}
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4"/>
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
             </CardContent>
             <CardFooter>
-                <Button onClick={processFiles} disabled={files.length === 0 || isLoading} className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400">
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : `Merge & Download ${files.length} File${files.length !== 1 ? 's' : ''}`}
+                <Button 
+                    className="w-full bg-green-600 hover:bg-green-700 text-lg h-12"
+                    disabled={filesToProcess.length === 0 || isProcessing}
+                    onClick={processAndDownload}
+                >
+                    {isProcessing ? (
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin"/> Procesando...</>
+                    ) : (
+                        `Combinar ${filesToProcess.length} Archivos`
+                    )}
                 </Button>
             </CardFooter>
-          </Card>
-        </div>
-      </main>
+        </Card>
+
+      </div>
+    </main>
   );
 }

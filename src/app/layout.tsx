@@ -43,7 +43,7 @@ export default function RootLayout({
 
         {/* Footer añadido */}
         <footer className="w-full py-4 text-center text-sm text-muted-foreground">
-          Angel Salguero &copy; {currentYear}
+          &copy; {currentYear} Desarrollado por Angel Salguero Systems Dev
         </footer>
       </body>
     </html>
