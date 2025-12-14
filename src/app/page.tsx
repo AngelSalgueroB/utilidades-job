@@ -67,6 +67,20 @@ export default function HomePage() {
           <span>Creating folders</span>
           </Button>
         </Link>
+
+{/* 5. Creating folders (Botón deshabilitado - Ámbar) */}
+        <Link href="/TB" passHref>
+      <Button 
+          variant="outline"
+          className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg
+                    border-red-500 text-red-700 hover:bg-red-500
+                    dark:border-red-400 dark:text-red-400 dark:hover:bg-red-950"
+        >
+          <FolderPlus className="h-8 w-8 mb-2" />
+          <span>Creating TB</span>
+          </Button>
+        </Link>
+
       </div>
     </main>
   );
