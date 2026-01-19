@@ -253,7 +253,7 @@ const RaboPDFDocument = ({
                                 fontWeight: col.isBold ? 'bold' : 'normal',
                                 borderRightWidth: i === activeColumns.length - 1 ? 0 : 1 
                             }} 
-                            maxLines={1}
+                            
                           >
                             {String(val)}
                           </Text>
