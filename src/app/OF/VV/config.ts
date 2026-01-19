@@ -7,6 +7,7 @@ export interface ColumnConfig {
   align?: 'left' | 'center' | 'right';
   isBold?: boolean;
   isOptional?: boolean;
+  isCheck?: boolean; // Habilita la columna de check
 }
 
 export interface ProductConfig {
@@ -17,26 +18,38 @@ export interface ProductConfig {
   columns: ColumnConfig[];
 }
 
-// --- 1. COLUMNAS PARA VV RFID (Ajustadas) ---
+// --- COLUMNAS VV RFID (Sin cambios) ---
 const VV_RFID_COLUMNS: ColumnConfig[] = [
-  { header: 'Sorting', keys: ['sorting_ID', 'Sorting'], width: 0.6, align: 'center' }, // Reducido
+  { header: 'Sorting', keys: ['sorting_ID', 'Sorting'], width: 0.6, align: 'center' },
   { header: 'Un Key', keys: ['Un_Key', 'Un_key'], width: 0.9, align: 'center' },
   { header: 'Sty No', keys: ['sty_no', 'Sty_no'], width: 0.8, align: 'center' },
   { header: 'Style No', keys: ['style_no', 'Style_no'], width: 0.8, align: 'center' },
   { header: 'Prod', keys: ['prod', 'Prod'], width: 0.6, align: 'center' },
-  
-  // AUMENTADO SIGNIFICATIVAMENTE PARA VERSE COMPLETO
   { header: 'Pattern', keys: ['patternnam', 'pattername'], width: 2.2, align: 'left' },
-  
   { header: 'Col Code', keys: ['color_code'], width: 0.7, align: 'center' },
   { header: 'Col Desc', keys: ['color_desc'], width: 1.1, align: 'left' },
   { header: 'UPC', keys: ['barcode', 'upc', 'rf$barcode'], width: 1.0, align: 'center' },
-  
   { header: 'Size', keys: ['Size_Des', 'size_des', 'size', 'Size'], width: 0.6, align: 'center' },
   { header: 'Kid Sz', keys: ['kidssize', 'kid_size', 'Kidssize'], width: 0.6, align: 'center' },
-  
   { header: 'Price', keys: ['main_price', 'price', 'price_in'], width: 0.6, align: 'center' },
   { header: 'Qty', keys: ['Qty_So', 'Qty', 'Prod_Qty'], width: 0.5, align: 'center', isBold: true },
+];
+
+// --- COLUMNAS PARA VV BOXER (CORREGIDO ORDEN EXACTO) ---
+const VV_BOXER_COLUMNS: ColumnConfig[] = [
+  { header: 'Sorting', keys: ['sorting_ID', 'Sorting'], width: 0.6, align: 'center' },
+  { header: 'Un Key', keys: ['Un_Key', 'un_key'], width: 0.9, align: 'center' },
+  { header: 'Prod', keys: ['prod', 'Prod', 'Prod_id'], width: 0.7, align: 'center' },
+  { header: 'Pattern', keys: ['patternnam', 'pattern'], width: 2.0, align: 'left' },
+  { header: 'Color Desc', keys: ['color_desc', 'Color_Desc'], width: 1.2, align: 'left' },
+  { header: 'Color Code', keys: ['color_code', 'Color_Code'], width: 0.8, align: 'center' },
+  { header: 'Style No', keys: ['style_no', 'Style_No', 'sty_no'], width: 0.9, align: 'left' },
+  { header: 'UPC', keys: ['barcode', 'Barcode', 'UPC'], width: 1.0, align: 'center' },
+  { header: 'Qty', keys: ['Qty_So', 'qty_so', 'Qty'], width: 0.6, align: 'center', isBold: true },
+  { header: 'Size', keys: ['Size_Des', 'size_des', 'size', 'Size'], width: 0.7, align: 'center' },
+  { header: 'Price', keys: ['main_price', 'price_in', 'Price'], width: 0.7, align: 'center' },
+  // Columna CHECK al final
+  { header: 'Check', keys: [], width: 0.5, align: 'center', isCheck: true }
 ];
 
 const DUMMY_COLS: ColumnConfig[] = [{ header: 'Data', keys: ['data'], width: 1, align: 'left' }];
@@ -66,8 +79,8 @@ export const VV_CONFIGS: Record<string, ProductConfig> = {
   'vv_boxer': {
     id: 'vv_boxer',
     name: 'BOXER VV - VVVVI9V001',
-    sampleImageName: 'sample.jpg', 
+    sampleImageName: 'vvboxer.jpg', // IMAGEN CORREGIDA
     headerRow: 0,
-    columns: DUMMY_COLS
+    columns: VV_BOXER_COLUMNS
   }
 };

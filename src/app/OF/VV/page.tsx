@@ -14,7 +14,6 @@ import { VV_CONFIGS, ProductConfig } from './config';
 
 type ExcelRow = { [key: string]: any };
 
-// Helper para obtener valores
 const getValue = (row: any, keys: string[]): any => {
   if (!row) return '';
   if (keys.length === 0) return '';
@@ -32,73 +31,30 @@ const parseQty = (val: any): number => {
   return parseFloat(String(val).replace(/,/g, ''));
 };
 
-// ==================== ESTILOS PDF ====================
 const styles = StyleSheet.create({
   page: { padding: 20, fontFamily: 'Helvetica', fontSize: 8, color: '#334155', backgroundColor: '#ffffff' },
-  
-  // Header
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5, borderBottomWidth: 1, borderBottomColor: '#cbd5e1', paddingBottom: 5, height: 35 },
   logoImage: { height: 28, width: 'auto', objectFit: 'contain' },
   dateText: { fontSize: 8, color: '#94a3b8' },
-
-  // Cliente Grande y Cust No
   clientContainer: { marginBottom: 10 },
   customerTitle: { fontSize: 18, fontWeight: 'bold', color: '#0f172a' },
   custNo: { fontSize: 9, color: '#64748b', fontWeight: 'bold', marginTop: 2 },
-
-  // Info Grid
   infoGrid: { flexDirection: 'row', gap: 8, marginBottom: 15, flexWrap: 'wrap' },
   infoCard: { width: '18%', padding: 6, backgroundColor: '#f8fafc', borderRadius: 6, borderWidth: 1, borderColor: '#cbd5e1', borderStyle: 'solid' },
   infoLabel: { fontSize: 7, color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 3 },
   infoValue: { fontSize: 9, color: '#0f172a', fontWeight: 'bold' },
-
-  // Sección Central
   middleSection: { flexDirection: 'row', gap: 10, marginBottom: 15, height: 130 },
-  
   moContainer: { flex: 1.3, borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 4, overflow: 'hidden' },
   moHeader: { flexDirection: 'row', backgroundColor: '#e2e8f0', padding: 5, borderBottomWidth: 1, borderBottomColor: '#cbd5e1' },
   moHeaderText: { fontSize: 8, fontWeight: 'bold', color: '#334155' },
   moRow: { flexDirection: 'row', padding: 5, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   moText: { fontSize: 9, color: '#334155' },
   totalRow: { flexDirection: 'row', backgroundColor: '#f1f5f9', padding: 5, marginTop: 'auto', borderTopWidth: 1, borderTopColor: '#cbd5e1' },
-
-  // IMAGEN CON SIDE LABEL (Actualizado)
-  imageWrapper: { 
-    flex: 1.0, 
-    flexDirection: 'row', // Importante para poner el texto al lado
-    borderWidth: 1, 
-    borderColor: '#cbd5e1', 
-    borderRadius: 4, 
-    backgroundColor: '#ffffff', 
-    overflow: 'hidden' 
-  },
-  imageContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    padding: 2 
-  },
+  imageWrapper: { flex: 1.0, flexDirection: 'row', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 4, backgroundColor: '#ffffff', overflow: 'hidden' },
+  imageContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 2 },
   sampleImage: { width: '100%', height: '100%', objectFit: 'contain' },
-  
-  // Estilos para la etiqueta vertical "SAMPLES"
-  sideLabel: { 
-    width: 18, 
-    backgroundColor: '#cbd5e1', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderLeftWidth: 1, 
-    borderLeftColor: '#94a3b8' 
-  },
-  sideLabelText: { 
-    fontSize: 7, 
-    fontWeight: 'bold', 
-    color: '#475569', 
-    transform: 'rotate(-90deg)', 
-    width: 80, 
-    textAlign: 'center' 
-  },
-
-  // Tabla
+  sideLabel: { width: 18, backgroundColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderLeftColor: '#94a3b8' },
+  sideLabelText: { fontSize: 7, fontWeight: 'bold', color: '#475569', transform: 'rotate(-90deg)', width: 80, textAlign: 'center' },
   tableContainer: { borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#64748b', borderRadius: 4, overflow: 'hidden' },
   tableHeader: { flexDirection: 'row', backgroundColor: '#1e293b', paddingVertical: 5 },
   th: { fontSize: 7, fontWeight: 'bold', color: '#ffffff', textAlign: 'center', borderRightWidth: 1, borderRightColor: '#475569' },
@@ -106,7 +62,6 @@ const styles = StyleSheet.create({
   td: { fontSize: 7, textAlign: 'center', paddingHorizontal: 2, color: '#334155', borderRightWidth: 1, borderRightColor: '#e2e8f0' },
 });
 
-// ==================== COMPONENTE PDF ====================
 const VVPDFDocument = ({ 
   data, imgBase64, logoBase64, config, manualClient 
 }: { 
@@ -115,7 +70,11 @@ const VVPDFDocument = ({
 }) => {
   
   const activeColumns = useMemo(() => {
-    return config.columns.filter(col => !col.isOptional || data.some(row => getValue(row, col.keys)));
+    // Filtrar columnas: Mantener si es check O si hay datos en alguna fila
+    return config.columns.filter(col => {
+        if (col.isCheck) return true;
+        return !col.isOptional || data.some(row => getValue(row, col.keys));
+    });
   }, [config, data]);
 
   const groupedData = useMemo(() => {
@@ -132,8 +91,6 @@ const VVPDFDocument = ({
     <Document>
       {Object.entries(groupedData).map(([soKey, rows], index) => {
         const first = rows[0];
-        
-        // Datos del Encabezado
         const mo = getValue(first, ['MO_NO', 'MO']);
         const epSo = getValue(first, ['EP_SO_NO', 'EP_SO']);
         const lotNo = getValue(first, ['Lot_no', 'Lot_No', 'P10008']);
@@ -141,41 +98,30 @@ const VVPDFDocument = ({
         const prodId = getValue(first, ['Prod_id', 'Prod_ID']);
         const custNo = getValue(first, ['Cust_no', 'Cust_No']) || 'P10008';
 
-        // Cálculo de Total
         let sumQty = 0;
-        rows.forEach(r => {
-            sumQty += parseQty(getValue(r, ['Qty_So', 'Qty', 'Prod_Qty']));
-        });
+        rows.forEach(r => { sumQty += parseQty(getValue(r, ['Qty_So', 'Qty', 'Prod_Qty'])); });
 
         return (
           <Page key={index} size="A4" orientation="landscape" style={styles.page}>
-            {/* 1. TOP BAR */}
             <View style={styles.topBar}>
               <View>{logoBase64 ? <Image style={styles.logoImage} src={logoBase64} /> : <Text style={{ fontWeight: 'bold', color: '#e74c3c' }}>SML</Text>}</View>
               <View><Text style={styles.dateText}>Print Date: {new Date().toLocaleDateString()}</Text></View>
             </View>
 
-            {/* 2. CLIENTE GRANDE */}
             <View style={styles.clientContainer}>
                 <Text style={styles.customerTitle}>{manualClient || 'CLIENTE'}</Text>
                 <Text style={styles.custNo}>Cust No: {custNo}</Text>
             </View>
 
-            {/* 3. INFO GRID */}
             <View style={styles.infoGrid}>
                 <View style={styles.infoCard}><Text style={styles.infoLabel}>SO No</Text><Text style={styles.infoValue}>{soKey}</Text></View>
                 <View style={styles.infoCard}><Text style={styles.infoLabel}>EP SO No</Text><Text style={styles.infoValue}>{epSo}</Text></View>
-                <View style={styles.infoCard}>
-                    <Text style={styles.infoLabel}>Lot No</Text>
-                    <Text style={{ ...styles.infoValue, color: '#ef4444' }}>{lotNo}</Text>
-                </View>
+                <View style={styles.infoCard}><Text style={styles.infoLabel}>Lot No</Text><Text style={{ ...styles.infoValue, color: '#ef4444' }}>{lotNo}</Text></View>
                 <View style={styles.infoCard}><Text style={styles.infoLabel}>Label Name</Text><Text style={styles.infoValue}>{labelName}</Text></View>
                 <View style={styles.infoCard}><Text style={styles.infoLabel}>Prod ID</Text><Text style={styles.infoValue}>{prodId}</Text></View>
             </View>
 
-            {/* 4. SECCIÓN CENTRAL */}
             <View style={styles.middleSection}>
-              {/* Tabla MO */}
               <View style={styles.moContainer}>
                 <View style={styles.moHeader}>
                   <Text style={{ ...styles.moHeaderText, flex: 1 }}>MO #</Text>
@@ -191,14 +137,9 @@ const VVPDFDocument = ({
                 </View>
               </View>
 
-              {/* Imagen + SideLabel */}
               <View style={styles.imageWrapper}>
                   <View style={styles.imageContainer}>
-                    {imgBase64 ? (
-                        <Image style={styles.sampleImage} src={imgBase64} />
-                    ) : (
-                        <Text style={{ fontSize: 8, color: '#94a3b8' }}>{config.sampleImageName}</Text>
-                    )}
+                    {imgBase64 ? (<Image style={styles.sampleImage} src={imgBase64} />) : (<Text style={{ fontSize: 8, color: '#94a3b8' }}>{config.sampleImageName}</Text>)}
                   </View>
                   <View style={styles.sideLabel}>
                       <Text style={styles.sideLabelText}>SAMPLES</Text>
@@ -206,7 +147,6 @@ const VVPDFDocument = ({
               </View>
             </View>
 
-            {/* 5. TABLA DE DATOS */}
             <View style={styles.tableContainer}>
               <View style={styles.tableHeader}>
                 {activeColumns.map((col, i) => (
@@ -218,16 +158,33 @@ const VVPDFDocument = ({
 
               {rows.map((row, idx) => (
                 <View key={idx} style={{ ...styles.tableRow, backgroundColor: idx % 2 === 0 ? 'white' : '#f8fafc' }}>
-                  {activeColumns.map((col, i) => (
-                    // @ts-ignore
-                    <Text 
-                        key={i} 
-                        style={{ ...styles.td, flex: col.width, textAlign: col.align || 'center', fontWeight: col.isBold ? 'bold' : 'normal', borderRightWidth: i === activeColumns.length - 1 ? 0 : 1 }}
-                        maxLines={1}
-                    >
-                        {String(getValue(row, col.keys))}
-                    </Text>
-                  ))}
+                  {activeColumns.map((col, i) => {
+                    // SI ES CHECK, RENDERIZAR ESPACIO VACÍO
+                    if (col.isCheck) {
+                        return (
+                            <View key={i} style={{ ...styles.td, flex: col.width, borderRightWidth: i === activeColumns.length - 1 ? 0 : 1 }}>
+                                <Text> </Text>
+                            </View>
+                        );
+                    }
+
+                    // VALOR NORMAL
+                    let val = getValue(row, col.keys);
+                    
+                    // LÓGICA DE PRECIO: NO AGREGAR SÍMBOLO (ELIMINADA)
+                    // if (col.header === 'Price'...) -> ELIMINADO
+
+                    return (
+                        // @ts-ignore
+                        <Text 
+                            key={i} 
+                            style={{ ...styles.td, flex: col.width, textAlign: col.align || 'center', fontWeight: col.isBold ? 'bold' : 'normal', borderRightWidth: i === activeColumns.length - 1 ? 0 : 1 }}
+                            maxLines={1}
+                        >
+                            {String(val)}
+                        </Text>
+                    );
+                  })}
                 </View>
               ))}
             </View>
@@ -238,7 +195,6 @@ const VVPDFDocument = ({
   );
 };
 
-// ==================== MAIN PAGE ====================
 export default function VVPage() {
   const [selectedProductId, setSelectedProductId] = useState<string>('vv_rfid');
   const [manualClient, setManualClient] = useState('');
@@ -256,7 +212,6 @@ export default function VVPage() {
 
   const currentConfig = VV_CONFIGS[selectedProductId];
 
-  // Carga Logo
   useEffect(() => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     fetch(`${origin}/images/logosml.jpg`)
@@ -264,12 +219,10 @@ export default function VVPage() {
         .then(b => { if (b) { const reader = new FileReader(); reader.onloadend = () => setLogoBase64(reader.result as string); reader.readAsDataURL(b); } });
   }, []);
 
-  // Carga Imagen Producto
   useEffect(() => {
     if (!currentConfig) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     setImgBase64(null); setImgStatus('cargando');
-    
     fetch(`${origin}/images/${currentConfig.sampleImageName}`)
         .then(r => r.ok ? r.blob() : Promise.reject())
         .then(b => {
@@ -333,11 +286,11 @@ export default function VVPage() {
   return (
     <main className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex items-center justify-between mb-8">
-        <Button variant="ghost" asChild className="text-indigo-700 hover:bg-indigo-50"><a href="/OF"><ArrowLeft className="mr-2 h-4 w-4" /> Volver al Menú</a></Button>
-        <h1 className="text-3xl font-bold text-indigo-700 flex items-center gap-3"><Package className="h-8 w-8" /> Generador VV</h1>
+        <Button variant="ghost" asChild className="text-teal-700 hover:bg-teal-50"><a href="/OF"><ArrowLeft className="mr-2 h-4 w-4" /> Volver al Menú</a></Button>
+        <h1 className="text-3xl font-bold text-teal-700 flex items-center gap-3"><Package className="h-8 w-8" /> Generador VV</h1>
         <div className="w-80">
             <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                <SelectTrigger className="w-full border-indigo-200"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full border-teal-200"><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.values(VV_CONFIGS).map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
             </Select>
         </div>
@@ -359,7 +312,7 @@ export default function VVPage() {
                     <div className="text-sm text-slate-500">{imgStatus === 'ok' ? <span className="text-green-600 flex items-center font-medium"><CheckCircle2 className="h-4 w-4 mr-1"/> Muestra OK.</span> : <span className="text-amber-500 flex items-center"><Loader2 className="h-4 w-4 mr-1 animate-spin"/> Buscando...</span>}</div>
                 </div>
                 {files.length > 0 && <div className="border rounded-md divide-y">{files.map((f, i) => (<div key={i} className="flex justify-between items-center p-3 text-sm hover:bg-slate-50"><span className="flex items-center gap-2 text-slate-700"><FileText className="h-4 w-4 text-blue-400"/> {f.name}</span><Button variant="ghost" size="sm" onClick={() => removeFile(i)} className="text-red-500 hover:text-red-700 h-8 w-8 p-0"><Trash2 className="h-4 w-4"/></Button></div>))}</div>}
-                {files.length > 0 && <div className="mt-4 flex justify-end"><Button onClick={processFiles} disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700">{isProcessing ? <><Loader2 className="animate-spin mr-2"/> Procesando...</> : <><Eye className="mr-2"/> Procesar Datos</>}</Button></div>}
+                {files.length > 0 && <div className="mt-4 flex justify-end"><Button onClick={processFiles} disabled={isProcessing} className="bg-teal-600 hover:bg-teal-700">{isProcessing ? <><Loader2 className="animate-spin mr-2"/> Procesando...</> : <><Eye className="mr-2"/> Procesar Datos</>}</Button></div>}
             </CardContent>
         </Card>
 
