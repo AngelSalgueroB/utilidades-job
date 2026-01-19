@@ -78,6 +78,8 @@ A partir de ahora, cada vez que quieras actualizar tu sitio web:
 
 Programa en VSCode (haz tus cambios).
 
+
+
 Guarda y sube los cambios a GitHub:
 
 Bash
