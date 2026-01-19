@@ -183,28 +183,7 @@ export default function TYLayoutPage() {
 
   const currentConfig: LayoutConfig = TY_LAYOUT_CONFIGS[selectedLayoutId];
 
-  // Generador de Barcode usando BWIP-JS
-  const generateBarcode = async (text: string): Promise<string> => {
-    return new Promise((resolve) => {
-        try {
-            const canvas = document.createElement('canvas');
-            bwipjs.toCanvas(canvas, {
-                bcid: 'upca',       // Tipo UPC-A
-                text: text,         // Texto del código
-                scale: 3,           // Escala de calidad
-                height: 10,         // Altura relativa de barras
-                includetext: true,  // Mostrar números abajo
-                textxalign: 'center',
-                textsize: 8,        // Tamaño fuente números (8pt)
-                barwidth: 1         // Ancho de barra (ajustable)
-            });
-            resolve(canvas.toDataURL('image/png'));
-        } catch (e) {
-            // Si falla (ej: texto no numérico o longitud incorrecta), retornamos vacío
-            resolve('');
-        }
-    });
-  };
+  
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -237,7 +216,7 @@ export default function TYLayoutPage() {
                 const cleanUpc = String(upc).replace(/[^0-9]/g, '');
                 // Generar solo si tiene longitud razonable (11 o 12 dígitos)
                 if (cleanUpc.length >= 11 && cleanUpc.length <= 12) {
-                    barcodeImg = await generateBarcode(cleanUpc);
+                    
                 }
             }
             return { ...row, barcodeBase64: barcodeImg };
