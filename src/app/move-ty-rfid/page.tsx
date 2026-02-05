@@ -1,3 +1,4 @@
+//src\app\move-ty-rfid\page.tsx
 "use client";
 
 // Importa los componentes y hooks necesarios

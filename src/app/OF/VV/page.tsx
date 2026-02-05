@@ -212,12 +212,32 @@ export default function VVPage() {
 
   const currentConfig = VV_CONFIGS[selectedProductId];
 
-  useEffect(() => {
+ useEffect(() => {
+    if (!currentConfig) return;    
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    fetch(`${origin}/images/logosml.jpg`)
+    
+    // AQUÍ ESTÁ LA CLAVE:
+    // Si la config tiene logoImageName (ej: 'logosml2.jpg'), usa ese.
+    // Si no, usa 'logosml.jpg' por defecto.
+    const logoName = currentConfig.logoImageName || 'logosml.jpg';
+    
+    // Reiniciamos el logo mientras carga el nuevo
+    setLogoBase64(null); 
+
+    fetch(`${origin}/images/${logoName}`)
         .then(r => r.ok ? r.blob() : null)
-        .then(b => { if (b) { const reader = new FileReader(); reader.onloadend = () => setLogoBase64(reader.result as string); reader.readAsDataURL(b); } });
-  }, []);
+        .then(b => { 
+            if (b) { 
+                const reader = new FileReader(); 
+                reader.onloadend = () => setLogoBase64(reader.result as string); 
+                reader.readAsDataURL(b); 
+            } else {
+                console.warn(`No se pudo cargar el logo: ${logoName}`);
+                setLogoBase64(null);
+            }
+        });
+        
+  }, [selectedProductId, currentConfig]); // IMPORTANTE: Estas dependencias hacen que se recargue al cambiar de opción.
 
   useEffect(() => {
     if (!currentConfig) return;
