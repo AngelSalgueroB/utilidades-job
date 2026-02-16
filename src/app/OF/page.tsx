@@ -158,6 +158,29 @@ export default function OrderFormsMenu() {
           </CardFooter>
         </Card>
 
+        {/* 7. RIPLEY */} 
+        <Card className="hover:shadow-xl transition-all border-t-4 border-t-red-500 cursor-pointer group hover:-translate-y-1">
+          <CardHeader>
+            <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition-colors">
+              <FileText className="h-7 w-7 text-red-600 group-hover:text-white" />
+            </div>
+            <CardTitle className="text-2xl">RIPLEY</CardTitle>
+            <CardDescription>Generador para RIPLEY.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="text-sm text-slate-500 space-y-2">
+              <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2 text-green-500"/> Generación de PDF</li>
+              <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2 text-green-500"/> Formato RIPLEY</li>
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full bg-red-600 hover:bg-red-700 h-12 text-lg">
+              <Link href="/OF/RIPLEY">Ir a Ripley <ArrowRight className="ml-2 h-5 w-5" /></Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+
       </div>
     </main>
   );
