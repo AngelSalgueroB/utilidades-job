@@ -106,9 +106,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#cbd5e1",
     borderRadius: 4,
-    padding: 2,
-    alignItems: "center",
+    flexDirection: "row",
+    overflow: "hidden",
+  },
+  verticalTextContainer: {
+    width: 15,
+    backgroundColor: "#f8fafc",
     justifyContent: "center",
+    alignItems: "center",
+    borderRightWidth: 1,
+    borderRightColor: "#e2e8f0",
+  },
+  verticalText: {
+    transform: "rotate(-90deg)",
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#94a3b8",
+    width: 80,
+    textAlign: "center",
+  },
+  imageWrapper: {
+    flex: 1,
+    padding: 2,
+    justifyContent: "center",
+    alignItems: "center",
   },
   sampleImage: { width: "100%", height: "100%", objectFit: "contain" },
 
@@ -357,16 +378,20 @@ const F47PDFDocument = ({
 
               {/* COLUMNA DERECHA: IMAGEN (AHORA ESTÁ ARRIBA) */}
               <View style={styles.rightColumn}>
-                {imgBase64 ? (
-                  <Image style={styles.sampleImage} src={imgBase64} />
-                ) : (
-                  <Text style={{ fontSize: 8, color: "#94a3b8" }}>
-                    {config.sampleImageName}
-                  </Text>
-                )}
+                <View style={styles.verticalTextContainer}>
+                  <Text style={styles.verticalText}>SAMPLE</Text>
+                </View>
+                <View style={styles.imageWrapper}>
+                  {imgBase64 ? (
+                    <Image style={styles.sampleImage} src={imgBase64} />
+                  ) : (
+                    <Text style={{ fontSize: 8, color: "#94a3b8" }}>
+                      {config.sampleImageName}
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
-
             {/* TABLA DE DATOS */}
             <View style={styles.tableContainer}>
               <View style={styles.tableHeader}>

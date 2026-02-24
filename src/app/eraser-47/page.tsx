@@ -37,11 +37,11 @@ export default function Erase47thPage() {
   const [jszipLib, setJszipLib] = useState<any>(null);
   const [isScriptLoading, setIsScriptLoading] = useState(true);
 
-  // 1. CARGA DINÁMICA DE JSZIP (CDN)
+  // 1. Carga dinámica de la librería JSZip desde una CDN
   useEffect(() => {
     const scriptUrl = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
 
-    const handleScriptLoad = () => {
+    const handleScriptLoad = () => {//funcion
       if (typeof (window as any).JSZip === 'function') {
         setJszipLib(() => (window as any).JSZip);
         setIsScriptLoading(false);
@@ -62,7 +62,7 @@ export default function Erase47thPage() {
       if ((window as any).JSZip) handleScriptLoad();
       else script.addEventListener('load', handleScriptLoad);
     }
-  }, []);
+  }, []);// Array vacío para cargar solo una vez
 
   // --- CORRECCIÓN AQUÍ ---
   // Manejo de carga de archivos

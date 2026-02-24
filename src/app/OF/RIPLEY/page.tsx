@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-// bwipjs eliminado
 import { Loader2, ArrowLeft, UploadCloud, CheckCircle2, FileDown, Eye, Package, Settings, FileText, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +32,7 @@ const parseQty = (val: any): number => {
 
 // ==================== ESTILOS PDF ====================
 const styles = StyleSheet.create({
-  page: { padding: 20, fontFamily: 'Helvetica', fontSize: 6.0, color: '#334155', backgroundColor: '#ffffff' }, // Letra pequeña para que quepa la URL
+  page: { padding: 20, fontFamily: 'Helvetica', fontSize: 6.0, color: '#334155', backgroundColor: '#ffffff' },
   
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5, borderBottomWidth: 1, borderBottomColor: '#cbd5e1', paddingBottom: 5, height: 30 },
   logoImage: { height: 24, width: 'auto', objectFit: 'contain' },
@@ -105,6 +104,7 @@ const RipleyPDFDocument = ({
         const labelName = getValue(first, ['LabelName', 'Label']);
         const mo = getValue(first, ['MO_NO', 'MO', 'MO_No']);
         const brand = getValue(first, ['brand', 'Brand']);
+        const season = getValue(first, ['season', 'Season']);
         
         let sumQty = 0;
         rows.forEach(r => sumQty += parseQty(getValue(r, ['Qty_So', 'Qty', 'Prod_Qty'])));
@@ -126,7 +126,10 @@ const RipleyPDFDocument = ({
                     <View style={styles.infoRow}>
                         <View style={styles.infoCard}><Text style={styles.infoLabel}>SO No</Text><Text style={styles.infoValue}>{soKey}</Text></View>
                         <View style={styles.infoCard}><Text style={styles.infoLabel}>EP SO No</Text><Text style={styles.infoValue}>{epSo}</Text></View>
-                        <View style={{...styles.infoCard, flex: 1.5}}><Text style={styles.infoLabel}>Brand</Text><Text style={styles.infoValue}>{brand}</Text></View>
+                        <View style={{...styles.infoCard, flex: 1.5}}>
+                            <Text style={styles.infoLabel}>Brand / Season</Text>
+                            <Text style={styles.infoValue}>{brand} {season ? `- ${season}` : ''}</Text>
+                        </View>
                     </View>
 
                     <View style={styles.infoRow}>
@@ -230,10 +233,11 @@ export default function RipleyPage() {
             const sheet = wb.Sheets[wb.SheetNames[0]];
             const json = XLSX.utils.sheet_to_json<ExcelRow>(sheet, { range: currentConfig.headerRow, defval: '' });
             
-            // --- GENERACIÓN DE QR LINK TEXTO ---
+            // --- GENERACIÓN DE QR LINK TEXTO (Aplica a ambos formatos de Ripley) ---
             const jsonWithQR = json.map(row => {
-                const ean = getValue(row, ['ean', 'EAN', 'rf$barcode']);
-                // Generamos solo el texto
+                // Buscamos el valor EAN/Barcode
+                const ean = getValue(row, ['ean', 'EAN', 'rf$barcode', 'barcode']);
+                // Armamos el texto
                 const qrText = ean ? `https://qr.ripley.com.pe/${ean}` : '';
                 return { ...row, qr_text: qrText };
             });
@@ -278,7 +282,7 @@ export default function RipleyPage() {
             <CardContent>
                 <div className="flex items-center gap-4 mb-4">
                     <Button asChild variant="secondary" size="lg" className="bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200"><label className="cursor-pointer"><UploadCloud className="mr-2 h-5 w-5"/> Seleccionar Archivos<Input type="file" multiple className="hidden" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} /></label></Button>
-                    <div className="text-sm text-slate-500">{imgStatus === 'ok' ? <span className="text-green-600 flex items-center font-medium"><CheckCircle2 className="h-4 w-4 mr-1"/> Imagen lista</span> : <span className="text-amber-500 flex items-center"><Loader2 className="h-4 w-4 mr-1 animate-spin"/> Buscando imagen...</span>}</div>
+                    <div className="text-sm text-slate-500">{imgStatus === 'ok' ? <span className="text-green-600 flex items-center font-medium"><CheckCircle2 className="h-4 w-4 mr-1"/> Imagen lista: {currentConfig.sampleImageName}</span> : <span className="text-amber-500 flex items-center"><Loader2 className="h-4 w-4 mr-1 animate-spin"/> Buscando imagen...</span>}</div>
                 </div>
                 {files.length > 0 && <div className="border rounded-md divide-y">{files.map((f, i) => (<div key={i} className="flex justify-between items-center p-3 text-sm hover:bg-slate-50"><span className="flex items-center gap-2 text-slate-700"><FileText className="h-4 w-4 text-violet-400"/> {f.name}</span><Button variant="ghost" size="sm" onClick={() => removeFile(i)} className="text-red-500 hover:text-red-700 h-8 w-8 p-0"><Trash2 className="h-4 w-4"/></Button></div>))}</div>}
                 {files.length > 0 && <div className="mt-4 flex justify-end"><Button onClick={processFiles} disabled={isProcessing} className="bg-violet-600 hover:bg-violet-700">{isProcessing ? <><Loader2 className="animate-spin mr-2"/> Procesando...</> : <><Eye className="mr-2"/> Procesar Datos</>}</Button></div>}

@@ -18,16 +18,16 @@ export default function OrderFormsMenu() {
 
         <h1 className="text-4xl font-bold text-slate-800 mb-4 flex items-center gap-3 mt-8 md:mt-0">
           <LayoutGrid className="h-10 w-10 text-indigo-600" /> 
-          Centro de Generación SML
+          Centro de Generación de packing list SML
         </h1>
-        <p className="text-slate-500 text-lg">Selecciona la línea de producto a procesar.</p>
+        <p className="text-slate-500 text-lg">Selecciona el item a procesar.</p>
       </div>
 
       {/* GRILLA DE OPCIONES (4 Columnas) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"> 
         
         {/* 1. TB RFID */}
-        <Card className="hover:shadow-xl transition-all border-t-4 border-t-indigo-500 cursor-pointer group hover:-translate-y-1">
+        <Card className="hover:shadow-xl transition-all border-2 border-indigo-500 cursor-pointer group hover:-translate-y-1">
           <CardHeader>
             <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
               <Tag className="h-7 w-7 text-indigo-600 group-hover:text-white" />
@@ -49,7 +49,7 @@ export default function OrderFormsMenu() {
         </Card>
 
         {/* 2. R&B RABO */}
-        <Card className="hover:shadow-xl transition-all border-t-4 border-t-amber-500 cursor-pointer group hover:-translate-y-1">
+        <Card className="hover:shadow-xl transition-all border-2 border-amber-500 cursor-pointer group hover:-translate-y-1">
           <CardHeader>
             <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-amber-500 group-hover:text-white transition-colors">
               <FileText className="h-7 w-7 text-amber-600 group-hover:text-white" />
@@ -71,7 +71,7 @@ export default function OrderFormsMenu() {
         </Card>
 
         {/* 3. COLECCIÓN VV */}
-        <Card className="hover:shadow-xl transition-all border-t-4 border-t-emerald-500 cursor-pointer group hover:-translate-y-1">
+        <Card className="hover:shadow-xl transition-all border-2 border-emerald-500 cursor-pointer group hover:-translate-y-1">
           <CardHeader>
             <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <Layers className="h-7 w-7 text-emerald-600 group-hover:text-white" />
@@ -93,7 +93,7 @@ export default function OrderFormsMenu() {
         </Card>
 
         {/* 4. TY RFID (NUEVO) */}
-        <Card className="hover:shadow-xl transition-all border-t-4 border-t-blue-500 cursor-pointer group hover:-translate-y-1">
+        <Card className="hover:shadow-xl transition-all border-2 border-blue-500 cursor-pointer group hover:-translate-y-1">
           <CardHeader>
             <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <Box className="h-7 w-7 text-blue-600 group-hover:text-white" />
@@ -115,7 +115,7 @@ export default function OrderFormsMenu() {
         </Card>
 
         {/* 5. RIACHUELO (NUEVO) */}
-        <Card className="hover:shadow-xl transition-all border-t-4 border-t-pink-500 cursor-pointer group hover:-translate-y-1">
+        <Card className="hover:shadow-xl transition-all border-2 border-pink-500 cursor-pointer group hover:-translate-y-1">
           <CardHeader>
             <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-pink-600 group-hover:text-white transition-colors">
               <ShoppingBag className="h-7 w-7 text-pink-600 group-hover:text-white" />
@@ -137,7 +137,7 @@ export default function OrderFormsMenu() {
         </Card>
 
         {/* 6. 47TH RFID */}
-        <Card className="hover:shadow-xl transition-all border-t-4 border-t-orange-500 cursor-pointer group hover:-translate-y-1">
+        <Card className="hover:shadow-xl transition-all border-2 border-orange-500 cursor-pointer group hover:-translate-y-1">
           <CardHeader>
             <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-orange-600 group-hover:text-white transition-colors">
               <Package className="h-7 w-7 text-orange-600 group-hover:text-white" />
@@ -159,7 +159,7 @@ export default function OrderFormsMenu() {
         </Card>
 
         {/* 7. RIPLEY */} 
-        <Card className="hover:shadow-xl transition-all border-t-4 border-t-red-500 cursor-pointer group hover:-translate-y-1">
+        <Card className="hover:shadow-xl transition-all border-2 border-red-500 cursor-pointer group hover:-translate-y-1">
           <CardHeader>
             <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition-colors">
               <FileText className="h-7 w-7 text-red-600 group-hover:text-white" />
@@ -180,6 +180,16 @@ export default function OrderFormsMenu() {
           </CardFooter>
         </Card>
 
+        {/* 8. PRÓXIMAMENTE */}
+        <Card className="border-2 border-gray-300 cursor-not-allowed opacity-50">
+          <CardHeader>
+            <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+              <Layers className="h-7 w-7 text-gray-400" />
+            </div>
+            <CardTitle className="text-2xl text-gray-400">Próximamente</CardTitle>  
+            <CardDescription className="text-gray-400">Estamos trabajando en nuevas funcionalidades.</CardDescription>
+          </CardHeader>
+          </Card>
 
       </div>
     </main>
