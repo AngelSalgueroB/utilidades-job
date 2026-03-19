@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { FileText, Image, FolderPlus, Layers } from 'lucide-react'; // Agregamos Layers para el icono
+import { FileText, Image, FolderPlus, Layers, Calculator } from 'lucide-react'; // Agregamos Layers para el icono
 
 export default function HomePage() {
   return (
@@ -15,7 +15,7 @@ export default function HomePage() {
       </div>
 
       {/* Grid para los botones grandes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
 
         {/* 1. Merge EXCEL TB (Verde) */}
         <Link href="/merge-excel" passHref>
@@ -92,6 +92,19 @@ export default function HomePage() {
           >
             <Layers className="h-8 w-8 mb-2" />
             <span>Creating Layouts</span>
+          </Button>
+        </Link>
+
+        {/* 7. Consump Calculates */}
+        <Link href="/consump-calculates" passHref>
+          <Button 
+            variant="outline"
+            className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg
+                       border-purple-500 text-purple-700 hover:bg-purple-500 hover:text-white
+                       dark:border-purple-400 dark:text-purple-400 dark:hover:bg-purple-950"
+          >
+            <Calculator className="h-8 w-8 mb-2" />
+            <span>Consump Calculates</span>
           </Button>
         </Link>
 

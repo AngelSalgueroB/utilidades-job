@@ -24,21 +24,13 @@ const getValue = (row: any, keys: string[]): any => {
   return '';
 };
 
-// Parseo robusto de cantidad
 const parseQty = (val: any): number => {
-  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (typeof val === 'number') return val;
   if (!val) return 0;
-  const parsed = parseFloat(String(val).replace(/,/g, '').trim());
-  return isNaN(parsed) ? 0 : parsed;
+  return parseFloat(String(val).replace(/,/g, ''));
 };
 
-// Formateador de números a prueba de fallos para el PDF
-const safeFormatNumber = (num: number): string => {
-    if (isNaN(num) || num === 0) return '0';
-    return String(Number(num).toLocaleString('en-US'));
-};
-
-// ==================== ESTILOS PDF ====================
+// ==================== ESTILOS PDF (MODERNO) ====================
 const styles = StyleSheet.create({
   page: { padding: 20, fontFamily: 'Helvetica', fontSize: 6.0, color: '#1e293b', backgroundColor: '#ffffff' },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12, borderBottomWidth: 2, borderBottomColor: '#2563eb', paddingBottom: 6 },
@@ -46,13 +38,13 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 8, color: '#64748b', fontWeight: 'bold' },
   masterContainer: { flexDirection: 'row', gap: 12, marginBottom: 10, height: 115 }, 
   leftColumn: { flex: 1.8, flexDirection: 'column', justifyContent: 'space-between' },
-  rightColumn: { flex: 0.8, backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 4, alignItems: 'center', justifyContent: 'center' },
+  rightColumn: { flex: 0.8, backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, padding: 4, alignItems: 'center', justifyContent: 'center' },
   sampleImage: { width: '100%', height: '100%', objectFit: 'contain' },
   clientContainer: { marginBottom: 6 },
   customerTitle: { fontSize: 18, fontWeight: 'bold', color: '#0f172a', textTransform: 'uppercase', lineHeight: 1 },
   custNo: { fontSize: 7, color: '#2563eb', fontWeight: 'bold', marginTop: 2 },
   infoRow: { flexDirection: 'row', gap: 8, marginBottom: 6 },
-  infoCard: { paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#f8fafc', borderRadius: 4, borderWidth: 1, borderColor: '#cbd5e1', flex: 1 },
+  infoCard: { paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#f1f5f9', borderRadius: 4, borderLeftWidth: 3, borderLeftColor: '#3b82f6', flex: 1 },
   infoLabel: { fontSize: 6, color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 2 },
   infoValue: { fontSize: 9, color: '#0f172a', fontWeight: 'bold' },
   moWrapper: { marginTop: 'auto', flexDirection: 'row', borderRadius: 6, overflow: 'hidden', height: 36, borderWidth: 1, borderColor: '#cbd5e1' },
@@ -65,20 +57,20 @@ const styles = StyleSheet.create({
   tableContainer: { borderRadius: 6, overflow: 'hidden', marginTop: 5, borderWidth: 1, borderColor: '#cbd5e1' },
   tableHeader: { flexDirection: 'row', backgroundColor: '#1e293b', paddingVertical: 6 }, 
   th: { fontSize: 6, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
-  tableRow: { flexDirection: 'row', minHeight: 14, alignItems: 'center' },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', minHeight: 14, alignItems: 'center' },
   td: { fontSize: 6.5, textAlign: 'center', paddingHorizontal: 2, color: '#334155' },
 });
 
 // ==================== COMPONENTE PDF ====================
 const TravisPDFDocument = ({ 
-  data, manualClient, manualTotalQty, imgBase64, logoBase64, config 
+  data, manualClient, imgBase64, logoBase64, config 
 }: { 
-  data: ExcelRow[]; manualClient: string; manualTotalQty: number; imgBase64: string | null; logoBase64: string | null; config: ProductConfig;
+  data: ExcelRow[]; manualClient: string; imgBase64: string | null; logoBase64: string | null; config: ProductConfig;
 }) => {
   
   const activeColumns = useMemo(() => {
     return config.columns.filter(col => {
-        if (col.isCheck || col.isGroupTotal) return true;
+        if (col.isCheck) return true;
         return !col.isOptional || data.some(row => getValue(row, col.keys));
     });
   }, [config, data]);
@@ -98,6 +90,7 @@ const TravisPDFDocument = ({
       {Object.entries(groupedData).map(([soKey, rows], index) => {
         const first = rows[0];
         
+        // Prioridad: 1. Lo que escribes a mano, 2. Lo que viene en Excel, 3. Vacío
         const clientName = manualClient || getValue(first, ['contractor', 'Customer', 'Cliente']) || '';
         const custNo = getValue(first, ['Cust_no', 'Cust_No']) || 'N/A';
         const epSo = getValue(first, ['EP_SO_NO', 'EP_SO']);
@@ -107,10 +100,7 @@ const TravisPDFDocument = ({
         const mo = getValue(first, ['MO_NO', 'MO', 'MO_No']);
         
         let sumQty = 0;
-        rows.forEach(r => sumQty += parseQty(getValue(r, ['Qty_So', 'qty_so', 'Qty'])));
-        
-        // El finalTotal usa lo que pusiste manual. Si no pusiste nada, usa la suma.
-        const finalTotal = manualTotalQty > 0 ? manualTotalQty : sumQty;
+        rows.forEach(r => sumQty += parseQty(getValue(r, ['Qty_So', 'Qty', 'Prod_Qty'])));
 
         return (
           <Page key={index} size="A4" orientation="landscape" style={styles.page}>
@@ -122,32 +112,32 @@ const TravisPDFDocument = ({
             <View style={styles.masterContainer}>
                 <View style={styles.leftColumn}>
                     <View style={styles.clientContainer}>
-                        <Text style={styles.customerTitle}>{String(clientName)}</Text>
-                        <Text style={styles.custNo}>CUST NO: {String(custNo)}</Text>
+                        <Text style={styles.customerTitle}>{clientName}</Text>
+                        <Text style={styles.custNo}>CUST NO: {custNo}</Text>
                     </View>
                     
                     <View style={styles.infoRow}>
-                        <View style={styles.infoCard}><Text style={styles.infoLabel}>SO No</Text><Text style={styles.infoValue}>{String(soKey)}</Text></View>
-                        <View style={styles.infoCard}><Text style={styles.infoLabel}>EP SO No</Text><Text style={styles.infoValue}>{String(epSo)}</Text></View>
+                        <View style={styles.infoCard}><Text style={styles.infoLabel}>SO No</Text><Text style={styles.infoValue}>{soKey}</Text></View>
+                        <View style={styles.infoCard}><Text style={styles.infoLabel}>EP SO No</Text><Text style={styles.infoValue}>{epSo}</Text></View>
                         <View style={{...styles.infoCard, flex: 1.5}}>
                             <Text style={styles.infoLabel}>Program</Text>
-                            <Text style={styles.infoValue}>{String(program)}</Text>
+                            <Text style={styles.infoValue}>{program}</Text>
                         </View>
                     </View>
 
                     <View style={styles.infoRow}>
-                        <View style={styles.infoCard}><Text style={styles.infoLabel}>Prod ID</Text><Text style={styles.infoValue}>{String(prodId)}</Text></View>
-                        <View style={{...styles.infoCard, flex: 2}}><Text style={styles.infoLabel}>Item Code</Text><Text style={styles.infoValue}>{String(itemCode)}</Text></View>
+                        <View style={styles.infoCard}><Text style={styles.infoLabel}>Prod ID</Text><Text style={styles.infoValue}>{prodId}</Text></View>
+                        <View style={{...styles.infoCard, flex: 2}}><Text style={styles.infoLabel}>Item Code</Text><Text style={styles.infoValue}>{itemCode}</Text></View>
                     </View>
 
                     <View style={styles.moWrapper}>
                          <View style={styles.moSection}>
                              <Text style={styles.moLabel}>MO Number</Text>
-                             <Text style={styles.moValue}>{String(mo)}</Text>
+                             <Text style={styles.moValue}>{mo}</Text>
                          </View>
                          <View style={styles.totalSection}>
                              <Text style={styles.totalLabel}>TOTAL ORDER QTY</Text>
-                             <Text style={styles.totalValue}>{safeFormatNumber(finalTotal)}</Text>
+                             <Text style={styles.totalValue}>{sumQty.toLocaleString('en-US')}</Text>
                          </View>
                     </View>
                 </View>
@@ -163,77 +153,21 @@ const TravisPDFDocument = ({
                   <Text key={i} style={{ ...styles.th, flex: col.width, textAlign: col.align || 'center' }}>{col.header}</Text>
                 ))}
               </View>
-
-              {/* LÓGICA DE AGRUPACIÓN POR ESTILOS */}
-              {(() => {
-                  const styleBlocks: ExcelRow[][] = [];
-                  let currentStyle: string | null = null;
-                  let currentBlock: ExcelRow[] = [];
-                  
-                  // 1. Agrupar las filas por el Style
-                  rows.forEach(r => {
-                      const style = String(getValue(r, ['style_desc', 'Style_Desc', 'Style', 'style']));
-                      if (style !== currentStyle) {
-                          if (currentBlock.length > 0) styleBlocks.push(currentBlock);
-                          currentStyle = style;
-                          currentBlock = [r];
-                      } else {
-                          currentBlock.push(r);
-                      }
-                  });
-                  if (currentBlock.length > 0) styleBlocks.push(currentBlock);
-
-                  // 2. Renderizar cada bloque (Estilo)
-                  return styleBlocks.map((block, blockIdx) => {
-                      const blockTotal = block.reduce((acc, r) => acc + parseQty(getValue(r, ['Qty_So', 'qty_so', 'Qty'])), 0);
-                      const midIdx = Math.floor((block.length - 1) / 2); 
-                      
-                      return block.map((row, rowIdx) => {
-                          const isLastRowInBlock = rowIdx === block.length - 1;
-                          
-                          return (
-                              <View 
-                                  key={`${blockIdx}-${rowIdx}`} 
-                                  style={{ 
-                                      ...styles.tableRow, 
-                                      backgroundColor: rowIdx % 2 === 0 ? '#ffffff' : '#f8fafc',
-                                      borderBottomWidth: isLastRowInBlock ? 1.5 : 1,
-                                      borderBottomColor: isLastRowInBlock ? '#64748b' : '#e2e8f0'
-                                  }}
-                              >
-                                  {activeColumns.map((col, colIdx) => {
-                                      const isLastCol = colIdx === activeColumns.length - 1;
-                                      
-                                      // Renderizado Especial: Columna de Total del Grupo (Qty x Size)
-                                      if (col.isGroupTotal) {
-                                          return (
-                                              <View key={colIdx} style={{ ...styles.td, flex: col.width, borderRightWidth: isLastCol ? 0 : 1, borderRightColor: '#f1f5f9', justifyContent: 'center' }}>
-                                                  <Text style={{ fontWeight: 'bold', fontSize: 8, color: '#0f172a' }}>
-                                                      {/* Uso de ' ' para evitar bug de react-pdf */}
-                                                      {rowIdx === midIdx ? safeFormatNumber(blockTotal) : ' '}
-                                                  </Text>
-                                              </View>
-                                          );
-                                      }
-
-                                      // Renderizado Especial: Checkbox
-                                      if (col.isCheck) {
-                                          return (<View key={colIdx} style={{ ...styles.td, flex: col.width, borderRightWidth: isLastCol ? 0 : 1, borderRightColor: '#f1f5f9' }}><Text> </Text></View>);
-                                      }
-                                      
-                                      // Renderizado Normal
-                                      return (
-                                          <Text key={colIdx} style={{ ...styles.td, flex: col.width, textAlign: col.align || 'center', fontWeight: col.isBold ? 'bold' : 'normal', borderRightWidth: isLastCol ? 0 : 1, borderRightColor: '#f1f5f9' }} {...({ maxLines: 1 } as any)}>
-                                              {String(getValue(row, col.keys))}
-                                          </Text>
-                                      );
-                                  })}
-                              </View>
-                          );
-                      });
-                  });
-              })()}
-
+              {rows.map((row, idx) => (
+                <View key={idx} style={{ ...styles.tableRow, backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                  {activeColumns.map((col, i) => {
+                    const isLast = i === activeColumns.length - 1;
+                    if (col.isCheck) {
+                        return (<View key={i} style={{ ...styles.td, flex: col.width, borderRightWidth: isLast ? 0 : 1, borderRightColor: '#f1f5f9' }}><Text> </Text></View>);
+                    }
+                    return (
+                        <Text key={i} style={{ ...styles.td, flex: col.width, textAlign: col.align || 'center', fontWeight: col.isBold ? 'bold' : 'normal', borderRightWidth: isLast ? 0 : 1, borderRightColor: '#f1f5f9' }} {...({ maxLines: 1 } as any)}>
+                            {String(getValue(row, col.keys))}
+                        </Text>
+                    );
+                  })}
+                </View>
+              ))}
             </View>
           </Page>
         );
@@ -254,11 +188,8 @@ export default function TravisPage() {
   const [imgStatus, setImgStatus] = useState<string>('cargando');
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
   
+  // INICIA VACÍO
   const [manualClient, setManualClient] = useState<string>('');
-  
-  // VARIABLE DEL FORMULARIO DE CANTIDAD TOTAL (Opcional)
-  const [productionQty, setProductionQty] = useState<string>('');
-  const numProductionQty = parseQty(productionQty);
 
   const currentConfig = TRAVIS_CONFIGS[selectedProductId];
 
@@ -304,16 +235,7 @@ export default function TravisPage() {
   const handleDownload = async () => {
     setIsPdfGenerating(true);
     try {
-        const blob = await pdf(
-            <TravisPDFDocument 
-                data={consolidatedData} 
-                manualClient={manualClient} 
-                manualTotalQty={numProductionQty} // ENVIAMOS EL TOTAL ESCRITO A MANO
-                imgBase64={imgBase64} 
-                logoBase64={logoBase64} 
-                config={currentConfig} 
-            />
-        ).toBlob();
+        const blob = await pdf(<TravisPDFDocument data={consolidatedData} manualClient={manualClient} imgBase64={imgBase64} logoBase64={logoBase64} config={currentConfig} />).toBlob();
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a'); link.href = url; link.download = `${currentConfig.id}_${Date.now()}.pdf`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -334,6 +256,7 @@ export default function TravisPage() {
       </div>
       <div className="grid gap-6">
         
+        {/* CARDS SIN BORDER-L-4 VIBE */}
         <Card className="border-2 border-teal-500 shadow-md">
             <CardHeader className="pb-3"><CardTitle className="text-lg flex gap-2"><UploadCloud className="h-5 w-5 text-teal-600"/> Cargar Excel</CardTitle></CardHeader>
             <CardContent>
@@ -350,17 +273,14 @@ export default function TravisPage() {
             <Card className="border-2 border-green-500 bg-green-50 shadow-md">
                 <CardHeader><CardTitle className="text-green-800 flex gap-2"><CheckCircle2/> Listo</CardTitle><CardDescription className="text-green-700">{consolidatedData.length} filas leídas.</CardDescription></CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-                        <div className="space-y-1">
-                            <Label className="text-slate-600 font-bold">CLIENTE</Label>
-                            <Input 
-                                placeholder="" 
-                                value={manualClient} 
-                                onChange={(e) => setManualClient(e.target.value)} 
-                                className="border-slate-300 bg-white shadow-sm"
-                            />
-                        </div>
-                       
+                    <div className="space-y-1 max-w-md">
+                        <Label className="text-slate-600 font-bold">CLIENTE (Impreso en el PDF)</Label>
+                        <Input 
+                            placeholder="Ej: TRAVIS MATTHEWS" 
+                            value={manualClient} 
+                            onChange={(e) => setManualClient(e.target.value)} 
+                            className="border-slate-300 bg-white shadow-sm"
+                        />
                     </div>
                 </CardContent>
                 <CardFooter><Button size="lg" className="w-full bg-green-600 hover:bg-green-700 shadow-md text-lg h-12 text-white" onClick={handleDownload} disabled={isPdfGenerating}>{isPdfGenerating ? <><Loader2 className="animate-spin mr-2"/> Generando PDF de Alta Calidad...</> : <><FileDown className="mr-2 h-6 w-6"/> Descargar Order Form</>}</Button></CardFooter>
