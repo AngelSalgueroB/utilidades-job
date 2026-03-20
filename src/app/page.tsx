@@ -7,10 +7,10 @@ export default function HomePage() {
     <main className="flex-grow container mx-auto px-4 py-8 md:py-12">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">
-          Utilidades Job
+          Utilities for job
         </h1>
         <p className="text-muted-foreground mt-2">
-          Selecciona una acción para comenzar.
+          Select your tool.
         </p>
       </div>
 
@@ -27,6 +27,7 @@ export default function HomePage() {
           >
             <FileText className="h-8 w-8 mb-2" />
             <span>Merge EXCEL TB</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Merge Excel files into one</h3>
           </Button>
         </Link>
 
@@ -39,7 +40,8 @@ export default function HomePage() {
                        dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-950"
           >
             <Image className="h-8 w-8 mb-2" />
-            <span>Move img TY RFID</span>
+            <span>Move sector TY RFID</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Move images within TY RFID sector</h3>
           </Button>
         </Link>
 
@@ -52,7 +54,8 @@ export default function HomePage() {
                        dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-950"
           >
             <Image className="h-8 w-8 mb-2" />
-            <span>Erase img 47TH</span>
+            <span>Erase part at img 47TH</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Erase images in 47TH sector</h3>
           </Button>
         </Link>
 
@@ -66,6 +69,7 @@ export default function HomePage() {
           >
             <FolderPlus className="h-8 w-8 mb-2" />
             <span>Creating folders</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Create new folders</h3>
           </Button>
         </Link>
 
@@ -79,6 +83,7 @@ export default function HomePage() {
           >
             <FolderPlus className="h-8 w-8 mb-2" />
             <span>Creating OF</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Create packing list from OF</h3>
           </Button>
         </Link>
 
@@ -92,6 +97,7 @@ export default function HomePage() {
           >
             <Layers className="h-8 w-8 mb-2" />
             <span>Creating Layouts</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Create layouts for packing</h3>
           </Button>
         </Link>
 
@@ -105,6 +111,7 @@ export default function HomePage() {
           >
             <Calculator className="h-8 w-8 mb-2" />
             <span>Consump Calculates</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Calculate consumption for OF</h3>
           </Button>
         </Link>
 
