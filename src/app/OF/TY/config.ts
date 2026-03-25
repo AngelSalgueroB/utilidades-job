@@ -29,7 +29,7 @@
     { header: 'Sty No', keys: ['sty_no', 'Sty_No'], width: 0.8, align: 'center' },
     { header: 'Name', keys: ['name', 'Name', 'Item_Name'], width: 1.8, align: 'left' },
     { header: 'Style', keys: ['style', 'Style', 'Style_No'], width: 0.8, align: 'left' },
-    { header: 'Color', keys: ['color', 'Color', 'Color_Desc'], width: 0.8, align: 'left' },
+    { header: 'Color', keys: ['color', 'Color', 'Color_Desc'], width: 1.1, align: 'left' },
     { header: 'Size', keys: ['size_des', 'Size_Desc', 'Size'], width: 0.7, align: 'center' },
     { header: 'Qty', keys: ['Qty_So', 'qty_so', 'Qty', 'QTY'], width: 0.6, align: 'center', isBold: true },
     { header: 'UPC', keys: ['upc', 'UPC', 'Barcode'], width: 0.9, align: 'center' },
