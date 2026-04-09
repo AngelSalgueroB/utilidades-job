@@ -25,8 +25,7 @@ export interface ProductConfig {
 const RABO_COLUMNS: ColumnConfig[] = [
   // 1. Item #
   { header: 'Item #', keys: [], width: 0.5, align: 'center', isCorrelative: true },
-  
-  // (Columna PO Eliminada)
+
   
   // 2. Detalles
   { header: 'Style', keys: ['STYLE', 'Style', 'Style_No'], width: 1.2, align: 'left' },

@@ -64,6 +64,25 @@ const parseQty = (val: any): number => {
   return parseFloat(String(val).replace(/,/g, ""));
 };
 
+// --- FUNCIÓN Y CONSTANTE DE ORDENAMIENTO DE TALLAS ---
+const SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "3XL", "4XL", "5XL"];
+
+const sortSizes = (sizesSet: Set<string>): string[] => {
+    const sizes = Array.from(sizesSet);
+    return sizes.sort((a, b) => {
+        const indexA = SIZE_ORDER.indexOf(a.toUpperCase());
+        const indexB = SIZE_ORDER.indexOf(b.toUpperCase());
+        
+        if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+        }
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        
+        return a.localeCompare(b);
+    });
+};
+
 // ==================== ESTILOS PDF ====================
 const styles = StyleSheet.create({
   page: {
@@ -299,14 +318,35 @@ const DynamicPDFDocument = ({
   return (
     <Document>
       {Object.entries(groupedBySO).map(([soKey, rows], index) => {
+        
+        // --- NUEVO ORDENAMIENTO PRINCIPAL DE LA TABLA ---
+        // Ordenamos las filas primero por Color y luego estrictamente por Talla
         rows.sort((a, b) => {
-          const colorA = String(
-            getValue(a, ["g_color", "color"]) || "",
-          ).toLowerCase();
-          const colorB = String(
-            getValue(b, ["g_color", "color"]) || "",
-          ).toLowerCase();
-          return colorA.localeCompare(colorB);
+          // 1. Orden principal por Color
+          const colorA = String(getValue(a, ["g_color", "color"]) || "").toLowerCase();
+          const colorB = String(getValue(b, ["g_color", "color"]) || "").toLowerCase();
+          
+          if (colorA !== colorB) {
+              return colorA.localeCompare(colorB);
+          }
+
+          // 2. Orden secundario por Talla (Size)
+          const sizeA = String(getValue(a, ["Size", "size", "us_size"]) || "").toUpperCase();
+          const sizeB = String(getValue(b, ["Size", "size", "us_size"]) || "").toUpperCase();
+
+          const indexA = SIZE_ORDER.indexOf(sizeA);
+          const indexB = SIZE_ORDER.indexOf(sizeB);
+
+          // Si ambas tallas están en nuestra jerarquía
+          if (indexA !== -1 && indexB !== -1) {
+              return indexA - indexB;
+          }
+          // Si solo una está, le damos prioridad
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          
+          // Respaldo alfabético si son tallas raras o numéricas
+          return sizeA.localeCompare(sizeB);
         });
 
         const firstRow = rows[0];
@@ -321,8 +361,7 @@ const DynamicPDFDocument = ({
         const poOc = getValue(firstRow, ["Cust_PO_NO", "cust_po_no"]) || "";
         const ordFrom = getValue(firstRow, ["Ord_From", "ord_from"]) || "";
 
-        const moGroups: Record<string, { qty: number; sizes: Set<string> }> =
-          {};
+        const moGroups: Record<string, { qty: number; sizes: Set<string> }> = {};
         const rowsByMO: Record<string, ExcelRow[]> = {};
 
         rows.forEach((row) => {
@@ -355,6 +394,7 @@ const DynamicPDFDocument = ({
             : parseQty(getValue(groupRows[0], ["Qty_Total", "qty_total"]));
           moGroups[mo] = { qty: finalQty, sizes };
         });
+        
         const totalQty = Object.values(moGroups).reduce(
           (sum, g) => sum + g.qty,
           0,
@@ -465,7 +505,10 @@ const DynamicPDFDocument = ({
                     Qty
                   </Text>
                 </View>
-                {Object.entries(moGroups).map(([mo, data], idx) => (
+                
+                {Object.entries(moGroups)
+                  .sort(([moA], [moB]) => moA.localeCompare(moB)) 
+                  .map(([mo, data], idx) => (
                   <View key={idx} style={styles.moRow}>
                     <Text
                       style={{ ...styles.moText, flex: 2, fontWeight: "bold" }}
@@ -477,7 +520,7 @@ const DynamicPDFDocument = ({
                       style={{ ...styles.moText, flex: 1.5 }}
                       {...({ maxLines: 1 } as any)}
                     >
-                      {Array.from(data.sizes).join(",")}
+                      {sortSizes(data.sizes).join(",")}
                     </Text>
                     <Text
                       style={{ ...styles.moText, flex: 1, textAlign: "right" }}
@@ -486,6 +529,7 @@ const DynamicPDFDocument = ({
                     </Text>
                   </View>
                 ))}
+
                 <View style={styles.totalRow}>
                   <Text
                     style={{ ...styles.moText, flex: 3.5, fontWeight: "bold" }}
@@ -541,7 +585,7 @@ const DynamicPDFDocument = ({
                 ))}
               </View>
 
-              {/* TABLA DE DATOS */}
+              {/* TABLA DE DATOS ORDENADA */}
               {rows.map((row, idx) => (
                 <View
                   key={idx}
@@ -551,24 +595,19 @@ const DynamicPDFDocument = ({
                   }}
                 >
                   {activeColumns.map((col, i) => {
-                    // Si es la columna de Check (está vacía)
                     if (col.isCheck) {
                         return (<View key={i} style={{ ...styles.td, flex: col.width, borderRightWidth: i === activeColumns.length - 1 ? 0 : 1 }}><Text> </Text></View>);
                     }
 
-                    // --- LÓGICA DE VALORES ---
                     let val = getValue(row, col.keys);
                     
-                    // Lógica específica para Qty
                     if (col.header === "Qty") {
                       val = getValue(row, ["Qty_Original", "Qty_Total", "qty"]);
                     }
 
-                    // APLICAR MAYÚSCULAS SI ESTÁ CONFIGURADO
                     if (col.isUpperCase && val) {
                       val = String(val).toUpperCase();
                     }
-                    // -------------------------
 
                     return (
                       <Text
@@ -599,7 +638,7 @@ const DynamicPDFDocument = ({
 
 // ==================== MAIN PAGE ====================
 export default function TBPage() {
-  const currentConfig = TB_CONFIG; // CONFIGURACIÓN FIJA
+  const currentConfig = TB_CONFIG;
 
   const [allFiles, setAllFiles] = useState<FileWithPath[]>([]);
   const [folderListText, setFolderListText] = useState("");
@@ -633,13 +672,11 @@ export default function TBPage() {
     loadLogo();
   }, []);
 
-  // Carga Imagen Dinámica (reemplaza el useEffect anterior)
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     setImgBase64(null);
     setImgStatus("cargando");
 
-    // Usamos la variable de estado dinámica
     fetch(`${origin}/images/${activeImageName}`)
       .then((r) => (r.ok ? r.blob() : Promise.reject()))
       .then((b) => {
@@ -655,7 +692,7 @@ export default function TBPage() {
         }
       })
       .catch(() => setImgStatus("error_404"));
-  }, [activeImageName]); // <--- La dependencia ahora es el estado
+  }, [activeImageName]); 
 
   const handleFolderUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -709,14 +746,9 @@ export default function TBPage() {
         allData = allData.concat(json);
       }
 
-      // === INICIO LÓGICA DE PRECIOS CORREGIDA ===
-      // Objetivo: Detectar si hay una segunda columna de precio con datos (Dual Pricing)
-
       let hasSecondPrice = false;
 
-      // Buscamos en las primeras filas (para no iterar todo si es grande) o en todas
       for (const row of allData) {
-        // Buscamos valores en las llaves típicas de un segundo precio
         const p2 = getValue(row, [
           "Price2",
           "price2",
@@ -726,23 +758,17 @@ export default function TBPage() {
           "Retail_Price",
         ]);
 
-        // Si encontramos ALGÚN valor en estas columnas que no esté vacío
         if (p2 && String(p2).trim() !== "") {
           hasSecondPrice = true;
-          break; // Ya encontramos uno, suficiente para cambiar la imagen
+          break;
         }
       }
 
-      console.log("¿Tiene segundo precio?:", hasSecondPrice);
-
-      // Si tiene segundo precio -> sample1.jpg
-      // Si solo tiene uno -> sample.jpg
       if (hasSecondPrice) {
         setActiveImageName("sample1.jpg");
       } else {
         setActiveImageName("sample.jpg");
       }
-      // === FIN LÓGICA DE PRECIOS ===
 
       setConsolidatedData(allData);
       setShowPreview(true);

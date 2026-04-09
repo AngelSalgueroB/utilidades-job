@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { FileText, Image, FolderPlus, Layers, Calculator } from 'lucide-react'; // Agregamos Layers para el icono
+import { FileText, Image, FolderPlus, Layers, Calculator, Database } from 'lucide-react'; // Agregamos Layers para el icono
 
 export default function HomePage() {
   return (
@@ -114,7 +114,19 @@ export default function HomePage() {
             <h3 className="text-xs text-muted-foreground mt-1">Calculate consumption for OF</h3>
           </Button>
         </Link>
-
+        {/* 8. RM Gestion (Gris - Módulo Independiente) */}
+        <Link href="/gestion-rm" passHref>
+          <Button 
+            variant="outline"
+            className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg
+                       border-gray-500 text-gray-700 hover:bg-gray-500 hover:text-white
+                       dark:border-gray-400 dark:text-gray-400 dark:hover:bg-gray-950"
+          >
+            <Database className="h-8 w-8 mb-2" />
+            <span>RM Gestion</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Manage raw materials</h3>
+          </Button>
+        </Link>
       </div>
     </main>
   );
