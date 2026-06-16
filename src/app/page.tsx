@@ -127,6 +127,19 @@ export default function HomePage() {
             <h3 className="text-xs text-muted-foreground mt-1">Manage raw materials</h3>
           </Button>
         </Link>
+        {/*9. ratios-sml (Naranja - Módulo Independiente) */}
+        <Link href="/ratios-sml" passHref>
+          <Button 
+            variant="outline"
+            className="h-32 text-xl w-full flex flex-col items-center justify-center shadow-lg
+                       border-orange-500 text-orange-700 hover:bg-orange-500 hover:text-white
+                       dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950"
+          >
+            <Calculator className="h-8 w-8 mb-2" />
+            <span>Ratios SML</span>
+            <h3 className="text-xs text-muted-foreground mt-1">Calculate ratios based on SML</h3>
+          </Button>
+        </Link>
       </div>
     </main>
   );
